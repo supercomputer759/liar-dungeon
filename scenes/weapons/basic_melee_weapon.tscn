@@ -1,0 +1,26 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/melee_weapon.gd" id="1"]
+[sub_resource type="BoxMesh" id="Box_grip"]
+size = Vector3(0.09, 0.42, 0.09)
+[sub_resource type="BoxMesh" id="Box_blade"]
+size = Vector3(0.1, 0.72, 0.045)
+[sub_resource type="StandardMaterial3D" id="Mat_weapon"]
+albedo_color = Color(0.4, 0.43, 0.48, 1)
+metallic = 0.78
+roughness = 0.3
+
+[node name="BasicMeleeWeapon" type="Node3D"]
+position = Vector3(0.48, -0.42, -0.72)
+rotation = Vector3(0.18, 0, 0.2)
+script = ExtResource("1")
+
+[node name="Grip" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.16, 0)
+mesh = SubResource("Box_grip")
+material_override = SubResource("Mat_weapon")
+
+[node name="Blade" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.4, 0)
+mesh = SubResource("Box_blade")
+material_override = SubResource("Mat_weapon")

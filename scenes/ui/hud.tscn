@@ -1,0 +1,261 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1"]
+[sub_resource type="StyleBoxFlat" id="Style_debug"]
+bg_color = Color(0.015, 0.02, 0.03, 0.88)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.8, 0.62, 0.7)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="Shader" id="Shader_vignette"]
+code = "shader_type canvas_item;\nvoid fragment() {\n vec2 p = UV * 2.0 - 1.0;\n float edge = smoothstep(0.35, 1.25, length(p * vec2(0.82, 1.0)));\n COLOR = vec4(0.55, 0.0, 0.0, edge * 0.82);\n}"
+
+[sub_resource type="ShaderMaterial" id="Material_vignette"]
+shader = SubResource("Shader_vignette")
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1")
+
+[node name="Crosshair" type="Label" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -8.0
+offset_top = -15.0
+offset_right = 8.0
+offset_bottom = 15.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.85)
+theme_override_font_sizes/font_size = 22
+text = "+"
+horizontal_alignment = 1
+pivot_offset = Vector2(8, 15)
+
+[node name="HitMarker" type="Label" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -15.0
+offset_top = -21.0
+offset_right = 15.0
+offset_bottom = 21.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.25, 0.18, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 30
+text = "×"
+horizontal_alignment = 1
+
+[node name="InteractionLabel" type="Label" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = 35.0
+offset_right = 100.0
+offset_bottom = 70.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.92, 0.65, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 20
+text = "E - 문 열기"
+horizontal_alignment = 1
+
+[node name="HealthLabel" type="Label" parent="."]
+offset_left = 24.0
+offset_top = 22.0
+offset_right = 220.0
+offset_bottom = 56.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 20
+text = "HP  100 / 100"
+
+[node name="RoomLabel" type="Label" parent="."]
+offset_left = 24.0
+offset_top = 54.0
+offset_right = 220.0
+offset_bottom = 88.0
+theme_override_colors/font_color = Color(1, 1, 1, 0.78)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 18
+text = "ROOM  1 / 5"
+
+[node name="ControlsLabel" type="Label" parent="."]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -310.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 92.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(1, 1, 1, 0.62)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+text = "WASD 이동 · Space 점프 · E 상호작용 · 좌클릭 공격\nESC 마우스 · R 재시작 · F3 디버그"
+horizontal_alignment = 2
+
+[node name="RemainingMonsters" type="Label" parent="."]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -270.0
+offset_top = 98.0
+offset_right = -20.0
+offset_bottom = 132.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(1, 0.45, 0.36, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 18
+text = "남은 몬스터  1"
+horizontal_alignment = 2
+
+[node name="WaveLabel" type="Label" parent="."]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -340.0
+offset_top = 132.0
+offset_right = -20.0
+offset_bottom = 164.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(1, 0.78, 0.48, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 16
+text = "WAVE 1 / 2   ·   생성 대기 3"
+horizontal_alignment = 2
+
+[node name="BehindWarning" type="Label" parent="."]
+anchors_preset = 12
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -165.0
+offset_bottom = -125.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 0.3, 0.22, 0.9)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 21
+text = "▲  뒤쪽에서 위협이 다가옵니다"
+horizontal_alignment = 1
+
+[node name="MonsterPanel" type="PanelContainer" parent="."]
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 360.0
+offset_top = 20.0
+offset_right = -360.0
+offset_bottom = 94.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("Style_debug")
+
+[node name="Margin" type="MarginContainer" parent="MonsterPanel"]
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 7
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 7
+
+[node name="MonsterInfo" type="Label" parent="MonsterPanel/Margin"]
+theme_override_colors/font_color = Color(1, 0.86, 0.68, 1)
+theme_override_font_sizes/font_size = 17
+text = "평범한 경비병\nHP 75 / 75   ·   공격력 18   ·   위험도: 보통"
+horizontal_alignment = 1
+
+[node name="MessageLabel" type="Label" parent="."]
+anchors_preset = 12
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -100.0
+offset_bottom = -55.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 0.42, 0.32, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 22
+text = "함정이었다!"
+horizontal_alignment = 1
+visible = false
+
+[node name="DebugPanel" type="PanelContainer" parent="."]
+offset_left = 20.0
+offset_top = 102.0
+offset_right = 690.0
+offset_bottom = 650.0
+theme_override_styles/panel = SubResource("Style_debug")
+
+[node name="MarginContainer" type="MarginContainer" parent="DebugPanel"]
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 9
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 9
+
+[node name="DebugLabel" type="Label" parent="DebugPanel/MarginContainer"]
+theme_override_colors/font_color = Color(0.5, 1, 0.72, 1)
+theme_override_font_sizes/font_size = 15
+text = "[개발자 디버그]"
+
+[node name="Effects" type="Control" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Vignette" type="ColorRect" parent="Effects"]
+material = SubResource("Material_vignette")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -4.0
+offset_top = -4.0
+offset_right = 4.0
+offset_bottom = 4.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Flash" type="ColorRect" parent="Effects"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 1)
+
+[node name="Fade" type="ColorRect" parent="Effects"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.008, 0.01, 0.015, 1)
+
+[node name="MessageTimer" type="Timer" parent="."]
+wait_time = 2.5
+one_shot = true

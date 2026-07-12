@@ -1,0 +1,198 @@
+[gd_scene format=3 uid="uid://7utpqpalf8to"]
+
+[ext_resource type="Script" uid="uid://bf7a0wkd56d1r" path="res://scripts/rooms/test_room.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/lie_door.tscn" id="2"]
+
+[sub_resource type="Environment" id="Environment_room"]
+background_mode = 1
+background_color = Color(0.012, 0.014, 0.018, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.3, 0.34, 0.4, 1)
+ambient_light_energy = 0.42
+tonemap_mode = 2
+
+[sub_resource type="StandardMaterial3D" id="Material_floor"]
+albedo_color = Color(0.17, 0.16, 0.15, 1)
+roughness = 0.92
+
+[sub_resource type="BoxMesh" id="BoxMesh_floor"]
+size = Vector3(14, 0.2, 16)
+
+[sub_resource type="BoxShape3D" id="BoxShape_floor"]
+size = Vector3(14, 0.2, 16)
+
+[sub_resource type="StandardMaterial3D" id="Material_wall"]
+albedo_color = Color(0.28, 0.27, 0.25, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="BoxMesh_ceiling"]
+size = Vector3(14, 0.2, 16)
+
+[sub_resource type="BoxShape3D" id="BoxShape_ceiling"]
+size = Vector3(14, 0.2, 16)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall_back"]
+size = Vector3(14, 5, 0.25)
+
+[sub_resource type="BoxShape3D" id="BoxShape_wall_back"]
+size = Vector3(14, 5, 0.25)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall_side"]
+size = Vector3(0.25, 5, 16)
+
+[sub_resource type="BoxShape3D" id="BoxShape_wall_side"]
+size = Vector3(0.25, 5, 16)
+
+[sub_resource type="StandardMaterial3D" id="Material_recess"]
+albedo_color = Color(0.008, 0.01, 0.016, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_recess"]
+size = Vector3(2.08, 3.18, 0.02)
+
+[sub_resource type="BoxMesh" id="BoxMesh_frame"]
+size = Vector3(0.18, 3.65, 0.42)
+
+[sub_resource type="BoxMesh" id="BoxMesh_frame_top"]
+size = Vector3(2.56, 0.18, 0.42)
+
+[node name="TestRoom" type="Node3D" unique_id=1224056061]
+script = ExtResource("1")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1064772034]
+environment = SubResource("Environment_room")
+
+[node name="Floor" type="StaticBody3D" parent="." unique_id=1965722411]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor" unique_id=598921662]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, -1)
+material_override = SubResource("Material_floor")
+mesh = SubResource("BoxMesh_floor")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor" unique_id=1175919103]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, -1)
+shape = SubResource("BoxShape_floor")
+
+[node name="Ceiling" type="StaticBody3D" parent="." unique_id=1754637676]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ceiling" unique_id=1730691256]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, -1)
+material_override = SubResource("Material_wall")
+mesh = SubResource("BoxMesh_ceiling")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ceiling" unique_id=304484279]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, -1)
+shape = SubResource("BoxShape_ceiling")
+
+[node name="BackWall" type="StaticBody3D" parent="." unique_id=556379672]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="BackWall" unique_id=1048373032]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -9)
+material_override = SubResource("Material_wall")
+mesh = SubResource("BoxMesh_wall_back")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BackWall" unique_id=39123485]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -9)
+shape = SubResource("BoxShape_wall_back")
+
+[node name="FrontWall" type="StaticBody3D" parent="." unique_id=399724107]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="FrontWall" unique_id=522503029]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 7)
+material_override = SubResource("Material_wall")
+mesh = SubResource("BoxMesh_wall_back")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="FrontWall" unique_id=494278029]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 7)
+shape = SubResource("BoxShape_wall_back")
+
+[node name="LeftWall" type="StaticBody3D" parent="." unique_id=672588669]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="LeftWall" unique_id=793187845]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 2.5, -1)
+material_override = SubResource("Material_wall")
+mesh = SubResource("BoxMesh_wall_side")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="LeftWall" unique_id=1564594561]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 2.5, -1)
+shape = SubResource("BoxShape_wall_side")
+
+[node name="RightWall" type="StaticBody3D" parent="." unique_id=1976917979]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RightWall" unique_id=873243767]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 2.5, -1)
+material_override = SubResource("Material_wall")
+mesh = SubResource("BoxMesh_wall_side")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RightWall" unique_id=1778483259]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 2.5, -1)
+shape = SubResource("BoxShape_wall_side")
+
+[node name="RedDoor" parent="." unique_id=1177104330 instance=ExtResource("2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.35, 0, -8.72)
+door_id = &"빨간 문"
+base_color = Color(0.62, 0.055, 0.045, 1)
+
+[node name="BlueDoor" parent="." unique_id=1652286738 instance=ExtResource("2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.15, 0, -8.72)
+door_id = &"파란 문"
+base_color = Color(0.035, 0.18, 0.63, 1)
+
+[node name="DoorBackdrops" type="Node3D" parent="." unique_id=1226592280]
+
+[node name="RedRecess" type="MeshInstance3D" parent="DoorBackdrops" unique_id=207042772]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.25, 1.59, -8.857)
+material_override = SubResource("Material_recess")
+mesh = SubResource("BoxMesh_recess")
+
+[node name="BlueRecess" type="MeshInstance3D" parent="DoorBackdrops" unique_id=1975063309]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.25, 1.59, -8.857)
+material_override = SubResource("Material_recess")
+mesh = SubResource("BoxMesh_recess")
+
+[node name="RedFrameLeft" type="MeshInstance3D" parent="DoorBackdrops" unique_id=36630888]
+transform = Transform3D(1, 0, 0, 0, 0.9327411, 0, 0, 0, 1, -3.44, 1.6584953, -8.66)
+material_override = SubResource("Material_floor")
+mesh = SubResource("BoxMesh_frame")
+
+[node name="RedFrameRight" type="MeshInstance3D" parent="DoorBackdrops" unique_id=1772247497]
+transform = Transform3D(1, 0, 0, 0, 0.9327411, 0, 0, 0, 1, -1.06, 1.6584953, -8.66)
+material_override = SubResource("Material_floor")
+mesh = SubResource("BoxMesh_frame")
+metadata/_edit_group_ = true
+
+[node name="RedFrameTop" type="MeshInstance3D" parent="DoorBackdrops" unique_id=1826485255]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.25, 3.3479934, -8.66)
+material_override = SubResource("Material_floor")
+mesh = SubResource("BoxMesh_frame_top")
+
+[node name="BlueFrameLeft" type="MeshInstance3D" parent="DoorBackdrops" unique_id=1219291103]
+transform = Transform3D(1, 0, 0, 0, 0.9327411, 0, 0, 0, 1, 1.06, 1.6584953, -8.66)
+material_override = SubResource("Material_floor")
+mesh = SubResource("BoxMesh_frame")
+
+[node name="BlueFrameRight" type="MeshInstance3D" parent="DoorBackdrops" unique_id=1955081856]
+transform = Transform3D(1, 0, 0, 0, 0.9327411, 0, 0, 0, 1, 3.44, 1.6584953, -8.66)
+material_override = SubResource("Material_floor")
+mesh = SubResource("BoxMesh_frame")
+
+[node name="BlueFrameTop" type="MeshInstance3D" parent="DoorBackdrops" unique_id=672806065]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.25, 3.4079933, -8.66)
+material_override = SubResource("Material_floor")
+mesh = SubResource("BoxMesh_frame_top")
+
+[node name="SpawnPoint" type="Marker3D" parent="." unique_id=1265896038]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 4.5)
+
+[node name="MainLight" type="OmniLight3D" parent="." unique_id=862549109]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.25, -1)
+light_color = Color(0.78, 0.83, 1, 1)
+light_energy = 2.1
+shadow_enabled = true
+omni_range = 11.0
+
+[node name="DoorLight" type="OmniLight3D" parent="." unique_id=2051698770]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.8, -6.8)
+light_color = Color(1, 0.82, 0.65, 1)
+light_energy = 1.3
+shadow_enabled = true
+omni_range = 7.0

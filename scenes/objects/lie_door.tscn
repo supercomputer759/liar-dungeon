@@ -1,0 +1,56 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/objects/lie_door.gd" id="1"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_door"]
+size = Vector3(2.2, 3.3, 0.25)
+
+[sub_resource type="BoxShape3D" id="BoxShape_door"]
+size = Vector3(2.2, 3.3, 0.25)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_stain"]
+top_radius = 0.8
+bottom_radius = 1.1
+height = 0.012
+radial_segments = 24
+
+[sub_resource type="StandardMaterial3D" id="Material_stain"]
+transparency = 1
+albedo_color = Color(0.025, 0.018, 0.018, 0.28)
+roughness = 1.0
+
+[node name="LieDoor" type="StaticBody3D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1")
+
+[node name="DoorMesh" type="MeshInstance3D" parent="."]
+position = Vector3(1.1, 1.65, 0)
+mesh = SubResource("BoxMesh_door")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(1.1, 1.65, 0)
+shape = SubResource("BoxShape_door")
+
+[node name="SignLabel" type="Label3D" parent="."]
+position = Vector3(1.1, 3.75, 0.18)
+pixel_size = 0.0038
+outline_size = 10
+font_size = 42
+text = "이 문은 안전합니다."
+billboard = 1
+no_depth_test = true
+
+[node name="DangerStain" type="MeshInstance3D" parent="."]
+position = Vector3(1.1, 0.015, 0.7)
+mesh = SubResource("CylinderMesh_stain")
+material_override = SubResource("Material_stain")
+visible = false
+
+[node name="ClueLight" type="OmniLight3D" parent="."]
+position = Vector3(1.1, 2.8, 0.55)
+light_color = Color(0.72, 0.54, 0.42, 1)
+light_energy = 0.16
+omni_range = 3.0
+shadow_enabled = true
+visible = false
