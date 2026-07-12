@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/core/game_manager.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/rooms/test_room.tscn" id="2"]
@@ -7,12 +7,24 @@
 [ext_resource type="Script" path="res://scripts/core/run_manager.gd" id="5"]
 [ext_resource type="PackedScene" path="res://scenes/ui/result_screen.tscn" id="6"]
 [ext_resource type="Script" path="res://scripts/rooms/encounter_manager.gd" id="7"]
+[ext_resource type="Script" path="res://scripts/items/player_inventory.gd" id="8"]
+[ext_resource type="Script" path="res://scripts/items/player_item_state.gd" id="9"]
+[ext_resource type="Script" path="res://scripts/items/loot_manager.gd" id="10"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1")
 
 [node name="RunManager" type="Node" parent="."]
 script = ExtResource("5")
+
+[node name="PlayerInventory" type="Node" parent="."]
+script = ExtResource("8")
+
+[node name="PlayerItemState" type="Node" parent="."]
+script = ExtResource("9")
+
+[node name="LootManager" type="Node3D" parent="."]
+script = ExtResource("10")
 
 [node name="TestRoom" parent="." instance=ExtResource("2")]
 

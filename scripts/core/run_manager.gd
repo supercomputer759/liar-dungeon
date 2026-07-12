@@ -13,9 +13,9 @@ const STATE_DEAD: StringName = &"DEAD"
 const STATE_VICTORY: StringName = &"VICTORY"
 
 @export var total_rooms := 5
-@export var starting_health := 100
-@export var minimum_trap_damage := 15
-@export var maximum_trap_damage := 35
+@export var starting_health := 120
+@export var minimum_trap_damage := 10
+@export var maximum_trap_damage := 22
 @export_range(0.0, 1.0, 0.01) var health_lie_probability := 0.5
 @export_range(0, 50, 1) var max_health_display_offset := 18
 @export_range(1, 30, 1) var max_display_change_per_event := 16
@@ -109,6 +109,18 @@ func apply_combat_damage(damage: int) -> bool:
 		_set_state(STATE_DEAD)
 		run_finished.emit(false, get_summary())
 	return true
+
+
+func heal_actual(amount: int) -> int:
+	if game_state != STATE_PLAYING or amount <= 0:
+		return 0
+	var before := actual_health
+	actual_health = mini(actual_health + amount, starting_health)
+	var healed := actual_health - before
+	if healed > 0:
+		_update_displayed_health(false)
+		health_changed.emit(actual_health, displayed_health, starting_health)
+	return healed
 
 
 func complete_victory() -> void:

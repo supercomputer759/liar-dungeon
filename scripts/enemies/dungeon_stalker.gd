@@ -383,7 +383,14 @@ func _play_hit_sound() -> void:
 	if HIT_STREAMS.is_empty():
 		return
 	_hit_audio.stream = HIT_STREAMS[_random.randi_range(0, HIT_STREAMS.size() - 1)]
-	_hit_audio.pitch_scale = _random.randf_range(0.9, 1.08)
+	var base_pitch := 1.0
+	if monster_role == &"RUSHER":
+		base_pitch = 1.14
+	elif monster_role == &"BRUTE":
+		base_pitch = 0.80
+	elif monster_role == &"BOSS":
+		base_pitch = 0.74
+	_hit_audio.pitch_scale = base_pitch * _random.randf_range(0.96, 1.04)
 	_hit_audio.volume_db = hit_sound_volume_db
 	_hit_audio.play()
 

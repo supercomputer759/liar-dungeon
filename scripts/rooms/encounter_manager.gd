@@ -7,6 +7,7 @@ signal warning_requested(message: String)
 signal encounter_completed
 signal final_boss_defeated
 signal player_hit_requested(damage: int, direction: Vector3, impact_strength: float)
+signal monster_defeated(monster: Node)
 
 const MonsterScene := preload("res://scenes/enemies/dungeon_stalker.tscn")
 const ROOM_WAVES := {
@@ -255,6 +256,7 @@ func _on_monster_health_ratio_changed(monster: Node, ratio: float) -> void:
 
 
 func _on_monster_died(monster: Node) -> void:
+	monster_defeated.emit(monster)
 	release_attack_slot(monster)
 	_living_monsters.erase(monster)
 	remaining_changed.emit(_living_monsters.size())

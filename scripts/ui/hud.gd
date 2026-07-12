@@ -1,6 +1,10 @@
 extends CanvasLayer
 
 const WAVE_WARNING_STREAM := preload("res://assets/audio/ui/warning.ogg")
+const HIT_CONFIRM_STREAMS := [
+	preload("res://assets/audio/monsters/hit_1.ogg"),
+	preload("res://assets/audio/monsters/hit_2.ogg"),
+]
 
 @onready var interaction_label: Label = $InteractionLabel
 @onready var health_label: Label = $HealthLabel
@@ -24,6 +28,10 @@ var _actual_health := 100
 var _maximum_health := 100
 var _effect_time := 0.0
 var _warning_audio: AudioStreamPlayer
+var _hit_confirm_audio: AudioStreamPlayer
+var _random := RandomNumberGenerator.new()
+var _inventory_label: Label
+var _buff_label: Label
 
 
 func _ready() -> void:
@@ -36,10 +44,28 @@ func _ready() -> void:
 	behind_warning.visible = false
 	flash.modulate.a = 0.0
 	fade.modulate.a = 0.0
+	_random.randomize()
 	_warning_audio = AudioStreamPlayer.new()
 	_warning_audio.stream = WAVE_WARNING_STREAM
 	_warning_audio.volume_db = -5.0
 	add_child(_warning_audio)
+	_hit_confirm_audio = AudioStreamPlayer.new()
+	_hit_confirm_audio.name = "HitConfirmAudio"
+	_hit_confirm_audio.volume_db = -14.0
+	add_child(_hit_confirm_audio)
+	_inventory_label = Label.new()
+	_inventory_label.position = Vector2(24.0, 620.0)
+	_inventory_label.size = Vector2(720.0, 72.0)
+	_inventory_label.add_theme_font_size_override("font_size", 16)
+	_inventory_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_inventory_label.add_theme_constant_override("outline_size", 4)
+	add_child(_inventory_label)
+	_buff_label = Label.new()
+	_buff_label.position = Vector2(24.0, 590.0)
+	_buff_label.size = Vector2(720.0, 26.0)
+	_buff_label.add_theme_font_size_override("font_size", 15)
+	_buff_label.add_theme_color_override("font_color", Color(0.7, 0.92, 0.78))
+	add_child(_buff_label)
 	message_timer.timeout.connect(_on_message_timer_timeout)
 
 
@@ -112,6 +138,10 @@ func set_attack_cooldown(on_cooldown: bool) -> void:
 func show_hit_confirm() -> void:
 	hit_marker.visible = true
 	hit_marker.modulate.a = 1.0
+	_hit_confirm_audio.stream = HIT_CONFIRM_STREAMS[_random.randi_range(0, HIT_CONFIRM_STREAMS.size() - 1)]
+	_hit_confirm_audio.pitch_scale = _random.randf_range(1.15, 1.28)
+	_hit_confirm_audio.volume_db = -14.0
+	_hit_confirm_audio.play()
 	var tween := create_tween()
 	tween.tween_property(hit_marker, "modulate:a", 0.0, 0.2)
 	await tween.finished
@@ -132,6 +162,26 @@ func show_wave_warning(message: String) -> void:
 	var tween := create_tween()
 	tween.tween_property(flash, "modulate:a", 0.24, 0.12)
 	tween.tween_property(flash, "modulate:a", 0.0, 0.42)
+
+
+func set_inventory(slots: Array, attack_bonus: int, guard_charges: int) -> void:
+	var entries: PackedStringArray = []
+	for index in 4:
+		var item: RefCounted = slots[index] as RefCounted
+		entries.append("[%d] %s" % [index + 1, "%s x%d" % [item.displayed_name, item.quantity] if item != null else "비어 있음"])
+	_inventory_label.text = "   ".join(entries)
+	var buffs: PackedStringArray = []
+	if attack_bonus > 0: buffs.append("무기가 날카로워집니다.")
+	if guard_charges > 0: buffs.append("희미한 보호막이 감깁니다.")
+	_buff_label.text = "  ".join(buffs)
+
+
+func play_item_flash(effect: StringName) -> void:
+	flash.color = Color(0.25, 1.0, 0.65, 1.0) if effect == &"HEAL" else Color(0.92, 0.82, 0.28, 1.0)
+	flash.modulate.a = 0.0
+	var tween := create_tween()
+	tween.tween_property(flash, "modulate:a", 0.22, 0.08)
+	tween.tween_property(flash, "modulate:a", 0.0, 0.25)
 
 
 func play_choice_flash(is_safe: bool) -> void:

@@ -3,11 +3,14 @@ extends Node3D
 const DifficultyProfiles := preload("res://scripts/core/difficulty_profiles.gd")
 
 @export_range(0.1, 2.0, 0.05) var result_pause := 0.65
-@export var player_hit_invulnerability := 0.25
+@export var player_hit_invulnerability := 0.35
 @export_enum("EASY", "NORMAL", "HARD", "CHAOS") var difficulty_profile := "NORMAL"
-@export_range(1, 100, 1) var player_actual_attack_damage := 22
+@export_range(1, 100, 1) var player_actual_attack_damage := 26
 
 @onready var run_manager: Node = $RunManager
+@onready var player_inventory: Node = $PlayerInventory
+@onready var player_item_state: Node = $PlayerItemState
+@onready var loot_manager: Node3D = $LootManager
 @onready var encounter_manager: Node3D = $EncounterManager
 @onready var player: CharacterBody3D = $Player
 @onready var player_combat: Node = $Player/PlayerCombat
@@ -29,6 +32,7 @@ func _ready() -> void:
 	player_combat.attack_cooldown_changed.connect(hud.set_attack_cooldown)
 	player_combat.hit_confirmed.connect(hud.show_hit_confirm)
 	run_manager.room_changed.connect(hud.set_room)
+	run_manager.room_changed.connect(_on_room_changed)
 	run_manager.health_changed.connect(_on_health_changed)
 	run_manager.state_changed.connect(_on_state_changed)
 	run_manager.choice_recorded.connect(_on_choice_recorded)
@@ -42,11 +46,17 @@ func _ready() -> void:
 	encounter_manager.encounter_completed.connect(_on_encounter_completed)
 	encounter_manager.final_boss_defeated.connect(_on_final_boss_defeated)
 	encounter_manager.player_hit_requested.connect(_on_player_hit_requested)
+	encounter_manager.monster_defeated.connect(loot_manager.on_monster_died)
+	loot_manager.message_requested.connect(hud.show_message)
+	player_inventory.changed.connect(_refresh_inventory_ui)
+	player_item_state.changed.connect(_refresh_inventory_ui)
+	loot_manager.setup(player_inventory, run_manager, run_manager.current_seed)
 	result_screen.restart_requested.connect(_restart_run)
 	run_manager.start_new_run()
 	room.configure_room()
 	player.teleport_to(room.get_spawn_transform())
 	_setup_room_encounter()
+	_refresh_inventory_ui()
 	_refresh_debug()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
@@ -68,6 +78,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		hud.toggle_debug()
 	elif event.is_action_pressed("debug_next_wave"):
 		encounter_manager.skip_to_next_wave()
+	elif event.is_action_pressed("use_item_1"):
+		_try_use_item(0)
+	elif event.is_action_pressed("use_item_2"):
+		_try_use_item(1)
+	elif event.is_action_pressed("use_item_3"):
+		_try_use_item(2)
+	elif event.is_action_pressed("use_item_4"):
+		_try_use_item(3)
 	elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED else Input.MOUSE_MODE_CAPTURED
 
@@ -78,7 +96,8 @@ func _on_door_chosen(door_state: Dictionary, selected_door: StaticBody3D) -> voi
 	_set_player_control(false)
 	room.set_doors_enabled(false)
 	_refresh_debug()
-	selected_door.play_open_animation()
+	if selected_door.has_method("play_open_animation"):
+		await selected_door.call("play_open_animation")
 	_resolving_door = true
 	var record: Dictionary = run_manager.resolve_choice(door_state)
 	_resolving_door = false
@@ -116,6 +135,7 @@ func _on_encounter_started(_remaining: int) -> void:
 
 
 func _on_encounter_completed() -> void:
+	loot_manager.ensure_mercy_loot()
 	room.set_doors_enabled(true)
 	hud.show_message("적을 처치했다. 문 잠금이 풀렸다.")
 	_refresh_debug()
@@ -129,7 +149,9 @@ func _on_final_boss_defeated() -> void:
 func _on_player_hit_requested(damage: int, direction: Vector3, impact_strength: float) -> void:
 	if _invulnerability_left > 0.0 or run_manager.game_state != run_manager.STATE_PLAYING:
 		return
-	if run_manager.apply_combat_damage(damage):
+	var damage_result: Dictionary = player_item_state.reduce_monster_damage(damage)
+	var final_damage := int(damage_result["final"])
+	if run_manager.apply_combat_damage(final_damage):
 		_invulnerability_left = player_hit_invulnerability
 		player.apply_knockback(direction, impact_strength * 2.2)
 		if player.has_method("play_hurt_sound"):
@@ -162,6 +184,42 @@ func _on_state_changed(_state: StringName) -> void:
 
 func _on_choice_recorded(_record: Dictionary) -> void:
 	_refresh_debug()
+
+
+func _on_room_changed(_current: int, _total: int) -> void:
+	player_item_state.reset_room()
+	loot_manager.clear_room()
+	player_combat.set_actual_attack_damage(player_actual_attack_damage)
+
+
+func _try_use_item(index: int) -> void:
+	if run_manager.game_state != run_manager.STATE_PLAYING:
+		return
+	var item: RefCounted = player_inventory.get_slot(index)
+	if item == null:
+		return
+	var effect: StringName = item.definition.effect_type
+	var applied := false
+	if effect == &"HEAL":
+		if run_manager.actual_health >= run_manager.starting_health:
+			hud.show_message("지금은 회복할 필요가 없습니다.")
+			return
+		applied = run_manager.heal_actual(item.definition.effect_amount) > 0
+	elif effect == &"ATTACK":
+		applied = player_item_state.add_attack_bonus(item.definition.effect_amount)
+	elif effect == &"GUARD":
+		applied = player_item_state.add_guard_charges(item.definition.effect_amount)
+	if not applied:
+		hud.show_message("지금은 사용할 수 없습니다.")
+		return
+	player_inventory.consume_slot(index)
+	player_combat.set_actual_attack_damage(player_actual_attack_damage + player_item_state.current_attack_bonus)
+	hud.show_message("%s 사용" % item.displayed_name)
+	hud.play_item_flash(effect)
+
+
+func _refresh_inventory_ui() -> void:
+	hud.set_inventory(player_inventory.slots, player_item_state.current_attack_bonus, player_item_state.guard_charges)
 
 
 func _on_run_finished(_victory: bool, _summary: Dictionary) -> void:

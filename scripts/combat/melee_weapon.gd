@@ -13,6 +13,7 @@ const SWING_STREAMS := [
 @export var actual_attack_damage := 22
 @export var attack_range := 2.6
 @export var attack_cooldown := 0.48
+@export_range(0.0, 0.5, 0.01) var attack_contact_delay := 0.08
 @export var collision_mask := 4
 @export_range(-40.0, 10.0, 0.5) var swing_volume_db := -2.0
 
@@ -21,17 +22,18 @@ const SWING_STREAMS := [
 var combat_enabled := true
 var _cooldown_left := 0.0
 var _rest_rotation := Vector3.ZERO
-var _audio_player: AudioStreamPlayer3D
+var _audio_player: AudioStreamPlayer
 var _random := RandomNumberGenerator.new()
+var _attack_contact_pending := false
+var _attack_contact_serial := 0
 
 
 func _ready() -> void:
 	_random.randomize()
 	_rest_rotation = rotation
-	_audio_player = AudioStreamPlayer3D.new()
+	_audio_player = AudioStreamPlayer.new()
 	_audio_player.name = "SwingAudio"
 	_audio_player.volume_db = swing_volume_db
-	_audio_player.max_distance = 14.0
 	add_child(_audio_player)
 
 
@@ -43,13 +45,25 @@ func _process(delta: float) -> void:
 
 
 func try_attack() -> bool:
-	if not combat_enabled or _cooldown_left > 0.0:
+	if not combat_enabled or _cooldown_left > 0.0 or _attack_contact_pending:
 		return false
 	_cooldown_left = attack_cooldown
 	attack_started.emit()
 	cooldown_changed.emit(true)
 	_play_swing_sound()
 	_play_swing()
+	_attack_contact_pending = true
+	_attack_contact_serial += 1
+	get_tree().create_timer(attack_contact_delay).timeout.connect(_perform_attack_contact.bind(_attack_contact_serial), CONNECT_ONE_SHOT)
+	return true
+
+
+func _perform_attack_contact(contact_serial: int) -> void:
+	if contact_serial != _attack_contact_serial:
+		return
+	_attack_contact_pending = false
+	if not combat_enabled or not is_inside_tree() or camera == null or not camera.is_inside_tree():
+		return
 	var from := camera.global_position
 	var to := from + -camera.global_basis.z * attack_range
 	var query := PhysicsRayQueryParameters3D.create(from, to, collision_mask)
@@ -60,11 +74,13 @@ func try_attack() -> bool:
 		if collider != null and collider.has_method("take_damage"):
 			collider.call("take_damage", actual_attack_damage, -camera.global_basis.z)
 			hit_confirmed.emit(collider)
-	return true
 
 
 func set_combat_enabled(enabled: bool) -> void:
 	combat_enabled = enabled
+	if not enabled:
+		_attack_contact_pending = false
+		_attack_contact_serial += 1
 
 
 func get_cooldown_left() -> float:
