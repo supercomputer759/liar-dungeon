@@ -2,9 +2,14 @@ extends StaticBody3D
 
 signal interacted(door_state: Dictionary)
 
+const DOOR_OPEN_STREAM := preload("res://assets/audio/doors/dooropen.ogg")
+const DOOR_LOCKED_STREAM := preload("res://assets/audio/doors/locked.ogg")
+const DOOR_INCORRECT_STREAM := preload("res://assets/audio/doors/incorrect.ogg")
+
 @export var door_id: StringName = &"door"
 @export_range(0.0, 1.0, 0.01) var clue_strength := 0.28
 @export var base_color := Color(0.65, 0.08, 0.08)
+@export_range(-40.0, 10.0, 0.5) var door_sound_volume_db := -5.0
 
 @onready var door_mesh: MeshInstance3D = $DoorMesh
 @onready var sign_label: Label3D = $SignLabel
@@ -14,6 +19,7 @@ signal interacted(door_state: Dictionary)
 var actual_safe := false
 var displayed_safe := false
 var is_lying := false
+var _audio_player: AudioStreamPlayer3D
 var _flicker_time := 0.0
 var _interaction_enabled := true
 var _closed_rotation_y := 0.0
@@ -22,6 +28,11 @@ var _closed_rotation_y := 0.0
 func _ready() -> void:
 	_apply_base_material()
 	_closed_rotation_y = rotation.y
+	_audio_player = AudioStreamPlayer3D.new()
+	_audio_player.name = "DoorAudio"
+	_audio_player.volume_db = door_sound_volume_db
+	_audio_player.max_distance = 18.0
+	add_child(_audio_player)
 
 
 func configure(state: Dictionary) -> void:
@@ -42,6 +53,7 @@ func configure(state: Dictionary) -> void:
 
 func interact() -> void:
 	if not _interaction_enabled:
+		_play_sound(DOOR_LOCKED_STREAM, 0.96)
 		return
 	_interaction_enabled = false
 	interacted.emit(get_debug_state())
@@ -52,9 +64,15 @@ func set_interaction_enabled(enabled: bool) -> void:
 
 
 func play_open_animation() -> void:
+	_play_sound(DOOR_OPEN_STREAM)
 	var tween := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
 	tween.tween_property(self, "rotation:y", _closed_rotation_y + deg_to_rad(82.0), 0.45)
 	await tween.finished
+
+
+func play_choice_result_sound(was_safe: bool) -> void:
+	if not was_safe:
+		_play_sound(DOOR_INCORRECT_STREAM, 0.92)
 
 
 func get_debug_state() -> Dictionary:
@@ -79,3 +97,10 @@ func _apply_base_material() -> void:
 	material.metallic = 0.18
 	material.roughness = 0.58
 	door_mesh.material_override = material
+
+
+func _play_sound(stream: AudioStream, pitch := 1.0) -> void:
+	_audio_player.stream = stream
+	_audio_player.pitch_scale = pitch
+	_audio_player.volume_db = door_sound_volume_db
+	_audio_player.play()

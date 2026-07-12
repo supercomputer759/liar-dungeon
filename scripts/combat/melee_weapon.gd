@@ -4,20 +4,35 @@ signal attack_started
 signal cooldown_changed(on_cooldown: bool)
 signal hit_confirmed(target: Node)
 
+const SWING_STREAMS := [
+	preload("res://assets/audio/player/swish_1.ogg"),
+	preload("res://assets/audio/player/swish_2.ogg"),
+	preload("res://assets/audio/player/swish_3.ogg"),
+]
+
 @export var actual_attack_damage := 22
 @export var attack_range := 2.6
 @export var attack_cooldown := 0.48
 @export var collision_mask := 4
+@export_range(-40.0, 10.0, 0.5) var swing_volume_db := -2.0
 
 @onready var camera: Camera3D = get_parent() as Camera3D
 
 var combat_enabled := true
 var _cooldown_left := 0.0
 var _rest_rotation := Vector3.ZERO
+var _audio_player: AudioStreamPlayer3D
+var _random := RandomNumberGenerator.new()
 
 
 func _ready() -> void:
+	_random.randomize()
 	_rest_rotation = rotation
+	_audio_player = AudioStreamPlayer3D.new()
+	_audio_player.name = "SwingAudio"
+	_audio_player.volume_db = swing_volume_db
+	_audio_player.max_distance = 14.0
+	add_child(_audio_player)
 
 
 func _process(delta: float) -> void:
@@ -33,6 +48,7 @@ func try_attack() -> bool:
 	_cooldown_left = attack_cooldown
 	attack_started.emit()
 	cooldown_changed.emit(true)
+	_play_swing_sound()
 	_play_swing()
 	var from := camera.global_position
 	var to := from + -camera.global_basis.z * attack_range
@@ -63,3 +79,12 @@ func _play_swing() -> void:
 	var tween := create_tween().set_trans(Tween.TRANS_QUAD)
 	tween.tween_property(self, "rotation", slash_rotation, 0.14).set_ease(Tween.EASE_IN)
 	tween.tween_property(self, "rotation", _rest_rotation, 0.22).set_ease(Tween.EASE_OUT)
+
+
+func _play_swing_sound() -> void:
+	if SWING_STREAMS.is_empty():
+		return
+	_audio_player.stream = SWING_STREAMS[_random.randi_range(0, SWING_STREAMS.size() - 1)]
+	_audio_player.pitch_scale = _random.randf_range(0.94, 1.08)
+	_audio_player.volume_db = swing_volume_db
+	_audio_player.play()

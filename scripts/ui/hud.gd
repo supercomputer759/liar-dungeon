@@ -1,5 +1,7 @@
 extends CanvasLayer
 
+const WAVE_WARNING_STREAM := preload("res://assets/audio/ui/warning.ogg")
+
 @onready var interaction_label: Label = $InteractionLabel
 @onready var health_label: Label = $HealthLabel
 @onready var room_label: Label = $RoomLabel
@@ -21,6 +23,7 @@ extends CanvasLayer
 var _actual_health := 100
 var _maximum_health := 100
 var _effect_time := 0.0
+var _warning_audio: AudioStreamPlayer
 
 
 func _ready() -> void:
@@ -33,6 +36,10 @@ func _ready() -> void:
 	behind_warning.visible = false
 	flash.modulate.a = 0.0
 	fade.modulate.a = 0.0
+	_warning_audio = AudioStreamPlayer.new()
+	_warning_audio.stream = WAVE_WARNING_STREAM
+	_warning_audio.volume_db = -5.0
+	add_child(_warning_audio)
 	message_timer.timeout.connect(_on_message_timer_timeout)
 
 
@@ -115,6 +122,16 @@ func show_message(message: String) -> void:
 	message_label.text = message
 	message_label.visible = true
 	message_timer.start()
+
+
+func show_wave_warning(message: String) -> void:
+	show_message(message)
+	_warning_audio.play()
+	flash.color = Color(0.9, 0.02, 0.01, 1.0)
+	flash.modulate.a = 0.0
+	var tween := create_tween()
+	tween.tween_property(flash, "modulate:a", 0.24, 0.12)
+	tween.tween_property(flash, "modulate:a", 0.0, 0.42)
 
 
 func play_choice_flash(is_safe: bool) -> void:

@@ -15,12 +15,17 @@ const STATE_CHARGE: StringName = &"CHARGE"
 const STATE_RECOVER: StringName = &"RECOVER"
 const STATE_HURT: StringName = &"HURT"
 const STATE_DEAD: StringName = &"DEAD"
+const HIT_STREAMS := [
+	preload("res://assets/audio/monsters/hit_1.ogg"),
+	preload("res://assets/audio/monsters/hit_2.ogg"),
+]
 
 @export_range(0.0, 1.0, 0.01) var name_lie_probability := 0.4
 @export_range(0.0, 1.0, 0.01) var max_health_lie_probability := 0.55
 @export_range(0.0, 1.0, 0.01) var health_lie_probability := 0.55
 @export_range(0.0, 1.0, 0.01) var attack_lie_probability := 0.5
 @export_range(0.0, 1.0, 0.01) var danger_lie_probability := 0.45
+@export_range(-40.0, 10.0, 0.5) var hit_sound_volume_db := -1.0
 
 @onready var visual: Node3D = $Visual
 @onready var body_mesh: MeshInstance3D = $Visual/Body
@@ -59,6 +64,7 @@ var _random := RandomNumberGenerator.new()
 var _body_material := StandardMaterial3D.new()
 var _eye_material := StandardMaterial3D.new()
 var _base_body_color := Color(0.22, 0.25, 0.27)
+var _hit_audio: AudioStreamPlayer3D
 
 
 func _ready() -> void:
@@ -68,6 +74,11 @@ func _ready() -> void:
 	_eye_material.emission_enabled = true
 	_eye_material.emission = Color(1.0, 0.035, 0.01)
 	eyes.material_override = _eye_material
+	_hit_audio = AudioStreamPlayer3D.new()
+	_hit_audio.name = "HitAudio"
+	_hit_audio.volume_db = hit_sound_volume_db
+	_hit_audio.max_distance = 16.0
+	add_child(_hit_audio)
 
 
 func setup(player: CharacterBody3D, seed_value: int, role: StringName, multipliers: Dictionary, coordinator: Node, index := 0) -> void:
@@ -133,6 +144,7 @@ func take_damage(damage: int, hit_direction: Vector3) -> void:
 	var ratio := float(profile.actual_health) / float(profile.actual_max_health)
 	health_ratio_changed.emit(self, ratio)
 	_hurt_direction = Vector3(hit_direction.x, 0.0, hit_direction.z).normalized()
+	_play_hit_sound()
 	_flash_hit()
 	if profile.actual_health <= 0:
 		_die()
@@ -365,6 +377,15 @@ func _flash_hit() -> void:
 	var tween := create_tween()
 	tween.tween_interval(0.07)
 	tween.tween_callback(func() -> void: _body_material.emission_enabled = false)
+
+
+func _play_hit_sound() -> void:
+	if HIT_STREAMS.is_empty():
+		return
+	_hit_audio.stream = HIT_STREAMS[_random.randi_range(0, HIT_STREAMS.size() - 1)]
+	_hit_audio.pitch_scale = _random.randf_range(0.9, 1.08)
+	_hit_audio.volume_db = hit_sound_volume_db
+	_hit_audio.play()
 
 
 func _update_actual_health_clues(delta: float) -> void:

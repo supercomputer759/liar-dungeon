@@ -2,21 +2,54 @@ extends CharacterBody3D
 
 signal focus_changed(is_interactable: bool)
 
+const FOOTSTEP_STREAMS := [
+	preload("res://assets/audio/player/footsteps/footstep_00.ogg"),
+	preload("res://assets/audio/player/footsteps/footstep_01.ogg"),
+	preload("res://assets/audio/player/footsteps/footstep_02.ogg"),
+	preload("res://assets/audio/player/footsteps/footstep_03.ogg"),
+	preload("res://assets/audio/player/footsteps/footstep_04.ogg"),
+	preload("res://assets/audio/player/footsteps/footstep_05.ogg"),
+	preload("res://assets/audio/player/footsteps/footstep_06.ogg"),
+	preload("res://assets/audio/player/footsteps/footstep_07.ogg"),
+	preload("res://assets/audio/player/footsteps/footstep_08.ogg"),
+	preload("res://assets/audio/player/footsteps/footstep_09.ogg"),
+]
+const HURT_STREAM := preload("res://assets/audio/player/hurt.ogg")
+
 @export var move_speed := 5.0
 @export var sprint_multiplier := 1.45
 @export var jump_velocity := 5.0
 @export var mouse_sensitivity := 0.002
 @export var interaction_distance := 3.2
+@export_range(0.1, 1.0, 0.01) var footstep_interval := 0.42
+@export_range(-40.0, 10.0, 0.5) var footstep_volume_db := -15.0
+@export_range(-40.0, 10.0, 0.5) var hurt_volume_db := -5.0
 
 @onready var head: Node3D = $Head
 @onready var interaction_ray: RayCast3D = $Head/Camera3D/InteractionRay
 
 var _movement_enabled := true
 var _focused_object: Object
+var _footstep_left := 0.0
+var _footstep_audio: AudioStreamPlayer3D
+var _hurt_audio: AudioStreamPlayer3D
+var _random := RandomNumberGenerator.new()
 
 
 func _ready() -> void:
+	_random.randomize()
 	interaction_ray.target_position = Vector3(0.0, 0.0, -interaction_distance)
+	_footstep_audio = AudioStreamPlayer3D.new()
+	_footstep_audio.name = "FootstepAudio"
+	_footstep_audio.volume_db = footstep_volume_db
+	_footstep_audio.max_distance = 10.0
+	add_child(_footstep_audio)
+	_hurt_audio = AudioStreamPlayer3D.new()
+	_hurt_audio.name = "HurtAudio"
+	_hurt_audio.stream = HURT_STREAM
+	_hurt_audio.volume_db = hurt_volume_db
+	_hurt_audio.max_distance = 16.0
+	add_child(_hurt_audio)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -38,6 +71,7 @@ func _physics_process(delta: float) -> void:
 	velocity.x = direction.x * current_speed
 	velocity.z = direction.z * current_speed
 	move_and_slide()
+	_update_footsteps(input_vector.length(), current_speed, delta)
 	_update_focus()
 
 
@@ -67,3 +101,29 @@ func set_movement_enabled(enabled: bool) -> void:
 func apply_knockback(direction: Vector3, strength: float) -> void:
 	velocity.x += direction.x * strength
 	velocity.z += direction.z * strength
+
+
+func play_hurt_sound() -> void:
+	_hurt_audio.pitch_scale = _random.randf_range(0.95, 1.05)
+	_hurt_audio.volume_db = hurt_volume_db
+	_hurt_audio.play()
+
+
+func _update_footsteps(input_strength: float, current_speed: float, delta: float) -> void:
+	_footstep_left = maxf(_footstep_left - delta, 0.0)
+	if not _movement_enabled or input_strength <= 0.05 or not is_on_floor():
+		return
+	if _footstep_left > 0.0:
+		return
+	_play_footstep(current_speed)
+	var speed_ratio := clampf(current_speed / maxf(move_speed, 0.01), 0.8, sprint_multiplier)
+	_footstep_left = footstep_interval / speed_ratio
+
+
+func _play_footstep(current_speed: float) -> void:
+	if FOOTSTEP_STREAMS.is_empty():
+		return
+	_footstep_audio.stream = FOOTSTEP_STREAMS[_random.randi_range(0, FOOTSTEP_STREAMS.size() - 1)]
+	_footstep_audio.pitch_scale = _random.randf_range(0.92, 1.08)
+	_footstep_audio.volume_db = footstep_volume_db + (1.5 if current_speed > move_speed else 0.0)
+	_footstep_audio.play()

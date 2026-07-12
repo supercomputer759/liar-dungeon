@@ -38,7 +38,7 @@ func _ready() -> void:
 	encounter_manager.encounter_started.connect(_on_encounter_started)
 	encounter_manager.remaining_changed.connect(hud.set_remaining_monsters)
 	encounter_manager.wave_changed.connect(hud.set_wave_status)
-	encounter_manager.warning_requested.connect(hud.show_message)
+	encounter_manager.warning_requested.connect(hud.show_wave_warning)
 	encounter_manager.encounter_completed.connect(_on_encounter_completed)
 	encounter_manager.final_boss_defeated.connect(_on_final_boss_defeated)
 	encounter_manager.player_hit_requested.connect(_on_player_hit_requested)
@@ -82,6 +82,8 @@ func _on_door_chosen(door_state: Dictionary, selected_door: StaticBody3D) -> voi
 	_resolving_door = true
 	var record: Dictionary = run_manager.resolve_choice(door_state)
 	_resolving_door = false
+	if selected_door.has_method("play_choice_result_sound"):
+		selected_door.call("play_choice_result_sound", bool(record["actual_safe"]))
 	hud.show_message("안전한 길이었다." if record["actual_safe"] else "함정이었다. 체력이 감소했습니다.")
 	await hud.play_choice_flash(bool(record["actual_safe"]))
 	await get_tree().create_timer(result_pause).timeout
@@ -130,6 +132,8 @@ func _on_player_hit_requested(damage: int, direction: Vector3, impact_strength: 
 	if run_manager.apply_combat_damage(damage):
 		_invulnerability_left = player_hit_invulnerability
 		player.apply_knockback(direction, impact_strength * 2.2)
+		if player.has_method("play_hurt_sound"):
+			player.call("play_hurt_sound")
 		hud.play_damage_feedback(impact_strength)
 		hud.show_message("몬스터에게 공격받았다.")
 		_refresh_debug()
