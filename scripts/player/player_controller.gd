@@ -1,6 +1,7 @@
 extends CharacterBody3D
 
 signal focus_changed(is_interactable: bool)
+signal interaction_prompt_changed(prompt: String)
 
 const FOOTSTEP_STREAMS := [
 	preload("res://assets/audio/player/footsteps/footstep_00.ogg"),
@@ -84,6 +85,7 @@ func _update_focus() -> void:
 	if next_object != _focused_object:
 		_focused_object = next_object
 		focus_changed.emit(_focused_object != null)
+		interaction_prompt_changed.emit(_get_interaction_prompt())
 
 
 func teleport_to(target: Transform3D) -> void:
@@ -96,6 +98,7 @@ func set_movement_enabled(enabled: bool) -> void:
 	if not enabled and _focused_object != null:
 		_focused_object = null
 		focus_changed.emit(false)
+		interaction_prompt_changed.emit("")
 
 
 func apply_knockback(direction: Vector3, strength: float) -> void:
@@ -127,3 +130,9 @@ func _play_footstep(current_speed: float) -> void:
 	_footstep_audio.pitch_scale = _random.randf_range(0.92, 1.08)
 	_footstep_audio.volume_db = footstep_volume_db + _random.randf_range(-1.0, 1.0) + (1.5 if current_speed > move_speed else 0.0)
 	_footstep_audio.play()
+
+
+func _get_interaction_prompt() -> String:
+	if _focused_object != null and _focused_object.has_method("get_interaction_prompt"):
+		return String(_focused_object.call("get_interaction_prompt"))
+	return "E - 상호작용" if _focused_object != null else ""

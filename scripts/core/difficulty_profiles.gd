@@ -10,4 +10,4 @@ const PROFILES := {
 
 static func get_profile(profile_name: StringName) -> Dictionary:
 	var key := String(profile_name).to_upper()
-	return PROFILES.get(key, PROFILES["CHAOS"]).duplicate(true)
+	return PROFILES.get(key, PROFILES["NORMAL"]).duplicate(true)

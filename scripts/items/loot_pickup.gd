@@ -21,6 +21,10 @@ func setup(instance: RefCounted) -> void:
 func interact() -> void:
 	pickup_requested.emit(self)
 
+
+func get_interaction_prompt() -> String:
+	return "E - 아이템 줍기"
+
 func _process(delta: float) -> void:
 	visual.rotate_y(delta * 1.4)
 	visual.position.y = 0.22 + sin(Time.get_ticks_msec() * 0.004) * 0.08

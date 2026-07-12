@@ -59,6 +59,10 @@ func interact() -> void:
 	interacted.emit(get_debug_state())
 
 
+func get_interaction_prompt() -> String:
+	return "E - 문 열기"
+
+
 func set_interaction_enabled(enabled: bool) -> void:
 	_interaction_enabled = enabled
 

@@ -91,6 +91,11 @@ func set_interaction_available(available: bool) -> void:
 	interaction_label.visible = available
 
 
+func set_interaction_prompt(prompt: String) -> void:
+	interaction_label.text = prompt
+	interaction_label.visible = not prompt.is_empty()
+
+
 func set_health(displayed: int, maximum: int, actual: int) -> void:
 	health_label.text = "HP  %d / %d" % [displayed, maximum]
 	_actual_health = actual

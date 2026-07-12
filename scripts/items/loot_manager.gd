@@ -25,12 +25,14 @@ func setup(next_inventory: Node, next_run_manager: Node, seed_value: int) -> voi
 	_random.seed = seed_value
 
 func clear_room() -> void:
-	for child in get_children(): child.queue_free()
+	for child in get_children():
+		if child != _pickup_audio:
+			child.queue_free()
 	_room_has_heal = false
 	_room_guaranteed = false
 
 func on_monster_died(monster: Node) -> void:
-	var chance := {&"HUNTER": 0.18, &"RUSHER": 0.30, &"BRUTE": 0.65, &"BOSS": 1.0}.get(monster.monster_role, 0.18)
+	var chance: float = float({&"HUNTER": 0.18, &"RUSHER": 0.30, &"BRUTE": 0.65, &"BOSS": 1.0}.get(monster.monster_role, 0.18))
 	if _random.randf() < chance:
 		spawn_item(monster.global_position, false)
 	if monster.monster_role == &"BOSS": spawn_item(monster.global_position + Vector3(0.7, 0.0, 0.3), false)
@@ -40,11 +42,11 @@ func ensure_mercy_loot() -> void:
 		_room_guaranteed = true
 		spawn_item(Vector3(0.0, 0.1, 0.0), true)
 
-func spawn_item(position: Vector3, force_bandage: bool) -> void:
+func spawn_item(spawn_position: Vector3, force_bandage: bool) -> void:
 	var item_id: StringName = &"BANDAGE" if force_bandage else Database.get_random_item_id(_random, run_manager.actual_health <= roundi(run_manager.starting_health * 0.5))
 	var pickup := PickupScene.instantiate() as StaticBody3D
 	add_child(pickup)
-	pickup.global_position = position + Vector3(0.0, 0.35, 0.0)
+	pickup.global_position = spawn_position + Vector3(0.0, 0.35, 0.0)
 	pickup.setup(Instance.new(item_id, _random))
 	pickup.pickup_requested.connect(_on_pickup_requested)
 	if item_id == &"BANDAGE" or item_id == &"POTION": _room_has_heal = true

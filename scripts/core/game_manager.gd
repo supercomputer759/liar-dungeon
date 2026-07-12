@@ -27,6 +27,7 @@ var _debug_refresh_left := 0.0
 func _ready() -> void:
 	room.door_chosen.connect(_on_door_chosen)
 	player.focus_changed.connect(hud.set_interaction_available)
+	player.interaction_prompt_changed.connect(hud.set_interaction_prompt)
 	player_combat.monster_focused.connect(_on_monster_focused)
 	player_combat.attack_started.connect(hud.show_attack_feedback)
 	player_combat.attack_cooldown_changed.connect(hud.set_attack_cooldown)

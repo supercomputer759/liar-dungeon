@@ -35,7 +35,7 @@ func configure(actual_data: Dictionary, probabilities: Dictionary, seed_value: i
 	max_health_is_lying = _roll(float(probabilities["max_health"]))
 	displayed_max_health = maxi(1, actual_max_health + _signed_offset(maxi(15, actual_max_health))) if max_health_is_lying else actual_max_health
 	health_is_lying = _roll(float(probabilities["health"]))
-	displayed_health = clampi(actual_health + _signed_offset(maxi(12, actual_max_health / 2)), 0, displayed_max_health) if health_is_lying else mini(actual_health, displayed_max_health)
+	displayed_health = clampi(actual_health + _signed_offset(maxi(12, roundi(float(actual_max_health) * 0.5))), 0, displayed_max_health) if health_is_lying else mini(actual_health, displayed_max_health)
 	attack_is_lying = _roll(float(probabilities["attack"]))
 	displayed_attack_damage = maxi(1, actual_attack_damage + _signed_offset(maxi(6, actual_attack_damage))) if attack_is_lying else actual_attack_damage
 	danger_is_lying = _roll(float(probabilities["danger"]))
